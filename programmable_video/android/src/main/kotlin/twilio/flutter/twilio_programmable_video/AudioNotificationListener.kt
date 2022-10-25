@@ -15,26 +15,27 @@ class AudioNotificationListener() : BaseListener() {
     private val intentFilter: IntentFilter = IntentFilter()
     private val activeAudioPlayers: MutableSet<String> = mutableSetOf()
 
-    private var bluetoothProfileProxy: BluetoothProfile.ServiceListener = object : BluetoothProfile.ServiceListener {
-        override fun onServiceDisconnected(profile: Int) {
-            debug("onServiceDisconnected => profile: $profile")
-            if (profile == BluetoothProfile.HEADSET) {
-                bluetoothProfile = null
-                TwilioProgrammableVideoPlugin.pluginHandler.applyAudioSettings()
-            }
-        }
-
-        override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
-            debug("onServiceConnected => profile: $profile, proxy: $proxy")
-            if (profile == BluetoothProfile.HEADSET) {
-                bluetoothProfile = proxy
-                if (bluetoothProfile!!.connectedDevices.size > 0 &&
-                    TwilioProgrammableVideoPlugin.pluginHandler.audioSettings.bluetoothPreferred) {
+    private var bluetoothProfileProxy: BluetoothProfile.ServiceListener =
+        object : BluetoothProfile.ServiceListener {
+            override fun onServiceDisconnected(profile: Int) {
+                debug("onServiceDisconnected => profile: $profile")
+                if (profile == BluetoothProfile.HEADSET) {
+                    bluetoothProfile = null
                     TwilioProgrammableVideoPlugin.pluginHandler.applyAudioSettings()
                 }
             }
+
+            override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
+            debug("onServiceConnected => profile: $profile, proxy: $proxy")
+//            if (profile == BluetoothProfile.HEADSET) {
+//                bluetoothProfile = proxy
+//                if (bluetoothProfile!!.connectedDevices.size > 0 &&
+//                    TwilioProgrammableVideoPlugin.pluginHandler.audioSettings.bluetoothPreferred) {
+//                    TwilioProgrammableVideoPlugin.pluginHandler.applyAudioSettings()
+//                }
+//            }
+            }
         }
-    }
 
     var bluetoothProfile: BluetoothProfile? = null
 
@@ -60,13 +61,15 @@ class AudioNotificationListener() : BaseListener() {
     fun listenForRouteChanges(context: Context) {
         debug("listenForRouteChanges")
         context.registerReceiver(receiver, intentFilter)
-        BluetoothAdapter.getDefaultAdapter()?.getProfileProxy(context, getProfileProxy(), BluetoothProfile.HEADSET)
+        BluetoothAdapter.getDefaultAdapter()
+            ?.getProfileProxy(context, getProfileProxy(), BluetoothProfile.HEADSET)
     }
 
     fun stopListeningForRouteChanges(context: Context) {
         debug("stopListeningForRouteChanges")
         context.unregisterReceiver(receiver)
-        BluetoothAdapter.getDefaultAdapter()?.closeProfileProxy(BluetoothProfile.HEADSET, bluetoothProfile)
+        BluetoothAdapter.getDefaultAdapter()
+            ?.closeProfileProxy(BluetoothProfile.HEADSET, bluetoothProfile)
     }
 
     private fun getBroadcastReceiver(): BroadcastReceiver {
@@ -74,7 +77,8 @@ class AudioNotificationListener() : BaseListener() {
         return object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val wiredEvent = intent?.action.equals(AudioManager.ACTION_HEADSET_PLUG)
-                val bluetoothEvent = intent?.action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)
+                val bluetoothEvent =
+                    intent?.action.equals(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)
 
                 val connected: Boolean = when {
                     wiredEvent -> {
@@ -92,7 +96,8 @@ class AudioNotificationListener() : BaseListener() {
 
                 val event = if (connected) "newDeviceAvailable" else "oldDeviceUnavailable"
 
-                val deviceName = if (bluetoothEvent) intent?.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)?.name
+                val deviceName =
+                    if (bluetoothEvent) intent?.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)?.name
                     else intent?.getStringExtra("portName") ?: return
 
                 debug("onReceive => connected: $connected\n\tevent: $event\n\tbluetoothEvent: $bluetoothEvent\n\twiredEvent: $wiredEvent\n\tdeviceName: $deviceName")
@@ -102,12 +107,14 @@ class AudioNotificationListener() : BaseListener() {
                 }
 
                 debug("onReceive => event: $event, connected: $connected, bluetooth: $bluetoothEvent, wired: $wiredEvent")
-                sendEvent(event, mapOf(
+                sendEvent(
+                    event, mapOf(
                         "connected" to connected,
                         "bluetooth" to bluetoothEvent,
                         "wired" to wiredEvent,
                         "deviceName" to deviceName
-                ))
+                    )
+                )
             }
         }
     }
