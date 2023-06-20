@@ -31,13 +31,13 @@ class ParticipantViewFactory: NSObject, FlutterPlatformViewFactory {
                      videoTrack = SwiftTwilioProgrammableVideoPlugin.localVideoTracks[name]
                  } else {
                      let localParticipant = plugin.getLocalParticipant()!
-                     videoTrack = localParticipant.localVideoTracks[0].localTrack!
+                     videoTrack = localParticipant.localVideoTracks[0].localTrack
                  }
              } else if let remoteParticipantSid = params["remoteParticipantSid"] as? String, let remoteVideoTrackSid = params["remoteVideoTrackSid"] as? String {
                  debug("create => constructing remote view with: '\(params)'")
                  if let remoteParticipant = plugin.getRemoteParticipant(remoteParticipantSid) {
                      if let remoteVideoTrack = remoteParticipant.remoteVideoTracks.first(where: { $0.trackSid == remoteVideoTrackSid }) {
-                         videoTrack = remoteVideoTrack.remoteTrack!
+                         videoTrack = remoteVideoTrack.remoteTrack
                      }
                  }
              }
@@ -46,7 +46,7 @@ class ParticipantViewFactory: NSObject, FlutterPlatformViewFactory {
          let videoView = VideoView.init(frame: frame)
          videoView.shouldMirror = shouldMirror
          videoView.contentMode = .scaleAspectFill
-         return ParticipantView(videoView, videoTrack: videoTrack!)
+         return ParticipantView(videoView, videoTrack: videoTrack)
      }
 
     func debug(_ msg: String) {
